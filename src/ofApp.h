@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "boxGrid.h"
 
 #define GRID_NUM 1000
 #define EARTH_RADIUS 300

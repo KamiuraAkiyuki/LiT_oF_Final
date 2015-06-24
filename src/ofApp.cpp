@@ -18,25 +18,26 @@ void ofApp::draw(){
     
     cam.begin();
     
-    ofSetColor(0, 0, 255);
+    ofSetColor(255);
     
     // 地球の枠の描画
     earth.setPosition(0, 0, 0);
     earth.set(EARTH_RADIUS, 8);
     earth.drawWireframe();
     
-    ofSetColor(ofColor::fromHsb(120, 255, 255, 127));
-    
     // 地球にグリッドを描画
     for (int j = 0; j < 30; j++){
         float angle = PI/60.0*j;
+        ofSetColor(ofColor::fromHsb(255*pow(sin(ofGetElapsedTimef()/10 + PI/600*j), 2), 255, 255, 127));
         for (int i = 0; i < 120*cos(angle); i++){
             ofPushMatrix();
             ofRotateX(360.0/(120.0*cos(angle))*i);
             ofRotateY(angle/PI*180);
-            ofDrawBox(polarToOrthogonal(EARTH_RADIUS, 0, 0), 7, 7, 0);
+            ofDrawBox(polarToOrthogonal(EARTH_RADIUS, 0, 0), 7, 7, ofRandom(0, 10));
             ofRotateY(-2*angle/PI*180);
-            ofDrawBox(polarToOrthogonal(EARTH_RADIUS, 0, 0), 7, 7, 0);
+            if (angle != 0){
+                ofDrawBox(polarToOrthogonal(EARTH_RADIUS, 0, 0), 7, 7, ofRandom(0, 10));
+            }
             ofPopMatrix();
         }
     }
