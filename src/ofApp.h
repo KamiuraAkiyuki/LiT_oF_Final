@@ -28,5 +28,11 @@ class ofApp : public ofBaseApp{
         ofEasyCam cam;
         ofSpherePrimitive earth;
         ofImage earthImg;
-        boxGrid gridPos[122][62];
+        boxGrid gridPos[61][62];
+    
+        ofSoundPlayer mySound;
+        float *volume;
+        float* fftSmoothed;
+        int nBandsToGet;
+        float avgSound;
 };

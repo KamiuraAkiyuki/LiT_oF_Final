@@ -4,7 +4,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    ofBackground(0, 0, 0);
+    ofBackground(0);
     
     earthImg.loadImage("image_earth.jpg");
     
@@ -13,20 +13,39 @@ void ofApp::setup(){
             ofColor cur = earthImg.getColor(x, y);
             
             float theta = (float)y * M_PI / earthImg.getHeight();
-            float phi = -(float)x * 2.0f * M_PI / earthImg.getWidth();
+            float phi = (float)x * 2.0f * M_PI / earthImg.getWidth();
             float px = EARTH_RADIUS * sin(theta) * cos(phi);
             float py = EARTH_RADIUS * sin(theta) * sin(phi);
             float pz = EARTH_RADIUS * cos(theta);
             
             gridPos[x/10][y/5] = boxGrid(ofPoint(px, py, pz), cur);
-            
         }
     }
+    
+    ofSetVerticalSync(true);
+    ofEnableBlendMode(OF_BLENDMODE_ADD);
+    mySound.loadSound("Spring of Life.mp3");
+    mySound.setLoop(true);
+    mySound.play();
+    // FFT解析初期化
+    fftSmoothed = new float[8192];
+    for (int i = 0; i < 8192; i++){
+        fftSmoothed[i] = 0;
+    }
+    nBandsToGet = 32;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
+    
+    ofSoundUpdate();
+    volume = ofSoundGetSpectrum(nBandsToGet);
+    //FFT解析を行い、音量の平均を出す
+    for (int i = 0; i < nBandsToGet; i++){
+        fftSmoothed[i] *= 0.96f;
+        if (fftSmoothed[i] < volume[i]) fftSmoothed[i] = volume[i];
+        avgSound += fftSmoothed[i];
+    }
 }
 
 //--------------------------------------------------------------
@@ -37,9 +56,12 @@ void ofApp::draw(){
     ofSetColor(255);
     
     // 地球の枠の描画
+    ofPushMatrix();
+    ofRotateX(90);
     earth.setPosition(0, 0, 0);
     earth.set(EARTH_RADIUS, 8);
     earth.drawWireframe();
+    ofPopMatrix();
     
     // 地球にグリッドを描画(均等に近い)
 //    for (int j = 0; j < 30; j++){
@@ -57,11 +79,19 @@ void ofApp::draw(){
 //            ofPopMatrix();
 //        }
 //    }
+    
     // 画像から情報を読み取った場合
     for (int y = 0; y < 62; y++){
         for (int x = 0; x < 61; x++){
-            ofSetColor(gridPos[x][y].getBoxColor());
-            ofDrawBox(gridPos[x][y].getStartPoint(), gridPos[x][y].getBottomWidth(), gridPos[x][y].getBottomHeight(), 0);
+            ofPushMatrix();
+            ofTranslate(gridPos[x][y].getStartPoint());
+            ofSetColor(gridPos[x][y].getBoxColor(), 127);
+            if (x < 32){
+                ofDrawBox(0, 0, 0, gridPos[x][y].getBottomWidth(), gridPos[x][y].getBottomHeight(), fftSmoothed[x]);
+            } else {
+                ofDrawBox(0, 0, 0, gridPos[x][y].getBottomWidth(), gridPos[x][y].getBottomHeight(), 0);
+            }
+            ofPopMatrix();
         }
     }
     

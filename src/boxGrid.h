@@ -16,8 +16,8 @@ class boxGrid{
     
 private:
     ofPoint startPoint;
-    float bottomWidth = 7;
-    float bottomHeight = 7;
+    float bottomWidth = 10;
+    float bottomHeight = 10;
     float boxHeight = 0;
     ofColor boxColor;
     
@@ -27,13 +27,6 @@ public:
         this -> startPoint = startPoint;
         this -> boxColor = boxColor;
     };
-    boxGrid(ofPoint startPoint, float bottomWidth, float bottomHeight, float boxHeight, ofColor boxColor){
-        this -> startPoint = startPoint;
-        this -> bottomWidth = bottomWidth;
-        this -> bottomHeight = bottomHeight;
-        this -> boxHeight = boxHeight;
-        this -> boxColor = boxColor;
-    }
     
     // セッター
     void setStartPoint(ofPoint point);
