@@ -27,6 +27,6 @@ class ofApp : public ofBaseApp{
     
         ofEasyCam cam;
         ofSpherePrimitive earth;
-    
-        ofPoint gridPosition[GRID_NUM];
+        ofImage earthImg;
+        ofPoint gridPos[122][62];
 };
