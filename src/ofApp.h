@@ -28,5 +28,5 @@ class ofApp : public ofBaseApp{
         ofEasyCam cam;
         ofSpherePrimitive earth;
         ofImage earthImg;
-        ofPoint gridPos[122][62];
+        boxGrid gridPos[122][62];
 };

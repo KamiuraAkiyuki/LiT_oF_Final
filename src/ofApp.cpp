@@ -18,14 +18,10 @@ void ofApp::setup(){
             float py = EARTH_RADIUS * sin(theta) * sin(phi);
             float pz = EARTH_RADIUS * cos(theta);
             
-            gridPos[x/10][y/5] = ofPoint(px, py, pz);
+            gridPos[x/10][y/5] = boxGrid(ofPoint(px, py, pz), cur);
             
         }
     }
-
-    cout << (int)earthImg.getHeight()/5;
-    cout << (int)earthImg.getWidth()/10;
-    
 }
 
 //--------------------------------------------------------------
@@ -61,10 +57,11 @@ void ofApp::draw(){
 //            ofPopMatrix();
 //        }
 //    }
-    ofSetColor(ofColor::fromHsb(120, 255, 255, 120));
+    // 画像から情報を読み取った場合
     for (int y = 0; y < 62; y++){
         for (int x = 0; x < 61; x++){
-            ofDrawBox(gridPos[x][y], 7, 7, 0);
+            ofSetColor(gridPos[x][y].getBoxColor());
+            ofDrawBox(gridPos[x][y].getStartPoint(), gridPos[x][y].getBottomWidth(), gridPos[x][y].getBottomHeight(), 0);
         }
     }
     
