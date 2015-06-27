@@ -2,6 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    ofBackground(0);
     ofSetVerticalSync(true);
     ofEnableDepthTest();
     ofToggleFullscreen();
@@ -26,37 +27,35 @@ void ofApp::setup(){
     
     cout << earthImg.getHeight() << endl;
     
-    // カメラ視点初期化
+    // 地球の位置とカメラ視点初期化
     earthPosition = ofPoint(-700, 0, 0);
-    cameraPosition = earthPosition + ofPoint();
+    cameraPosition = earthPosition + ofPoint(0, earth_radius*1.3, 0);
     
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    // 地球の位置変更
+    // 地球の位置とカメラの位置更新
     earthPosition = ofPoint(-700*cosf((float)ofGetElapsedTimef()), 0, 700*sinf((float)ofGetElapsedTimef()));
-    
+    cameraPosition = earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2));
+    camera.setPosition(cameraPosition);
+    cameraLookAtPosition = ofPoint(earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2+0.7), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2+0.7)));
+    camera.lookAt(cameraLookAtPosition);
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofBackgroundGradient(ofColor::gray, ofColor::black, OF_GRADIENT_CIRCULAR);
-    
     ofNoFill();
     
-    camera.begin();
+    if (camMode == 0){
+        camera.begin();
+    } else if (camMode == 1){
+        cam.begin();
+    }
     
     ofSetColor(255);
     
     // 太陽
-//    ofPushMatrix();
-//    ofRotateX(90);
-//    sun.setPosition(0, 0, 0);
-//    sun.set(SUN_RADIUS, 8);
-//    sun.drawWireframe();
-//    ofPopMatrix();
-    
     for (int j = 0; j < 30; j++){
         float angle = PI/60.0f*j;
         ofSetColor(ofColor::fromHsb(20*pow(sin(ofGetElapsedTimef() + PI/600*j), 2), 255, 255, 127));
@@ -83,10 +82,10 @@ void ofApp::draw(){
             ofTranslate(grid[x][y].getStartPoint());
             
             if ((int)grid[x][y].getBoxColor().r < 40){
-                ofSetColor(ofColor::fromHsb(80 + 5 * cosf(ofGetElapsedTimef()), 255, 255, 127));
+                ofSetColor(ofColor::fromHsb(100 + 10 * cosf(ofGetElapsedTimef()), 255, 255, 127));
 
             } else {
-                ofSetColor(ofColor::fromHsb(160 + 5 * sinf(ofGetElapsedTimef()), 255, 255, 127));
+                ofSetColor(ofColor::fromHsb(160 + 30 * sinf(ofGetElapsedTimef()/5), 255, 255, 127));
             }
             
             ofDrawBox(0, 0, 0, grid[x][y].getBottomWidth(), grid[x][y].getBottomHeight(), 3);
@@ -95,14 +94,20 @@ void ofApp::draw(){
     }
     ofPopMatrix();
     
-    camera.end();
+    if (camMode == 0){
+        camera.end();
+    } else if (camMode == 1){
+        cam.end();
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     
     switch (key){
-            
+        case ' ':
+            camMode = (camMode + 1)%2;
+            break;
     }
 }
 

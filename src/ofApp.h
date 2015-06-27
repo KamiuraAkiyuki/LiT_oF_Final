@@ -27,9 +27,12 @@ class ofApp : public ofBaseApp{
     
         float earth_radius = 100;
         float sun_radius = 300;
+        float star_radius = 5000;
 
-        ofEasyCam camera;
-        ofSpherePrimitive sun;
+        int camMode = 0;
+        ofCamera camera;
+        ofEasyCam cam;
+        ofSpherePrimitive earthSphere;
         ofImage earthImg;
         boxGrid grid[61][62];
     
