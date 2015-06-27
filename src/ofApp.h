@@ -4,7 +4,6 @@
 #include "boxGrid.h"
 
 #define GRID_NUM 1000
-#define EARTH_RADIUS 300
 
 class ofApp : public ofBaseApp{
 
@@ -24,15 +23,17 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
         ofPoint polarToOrthogonal(float radius, float angle1, float angle2);
+        ofPoint orthogonalToPolar(float x, float y, float z);
     
-        ofEasyCam cam;
-        ofSpherePrimitive earth;
+        float earth_radius = 100;
+        float sun_radius = 300;
+
+        ofEasyCam camera;
+        ofSpherePrimitive sun;
         ofImage earthImg;
-        boxGrid gridPos[61][62];
+        boxGrid grid[61][62];
     
-        ofSoundPlayer mySound;
-        float *volume;
-        float* fftSmoothed;
-        int nBandsToGet;
-        float avgSound;
+        ofPoint cameraPosition;
+        ofPoint cameraLookAtPosition;
+        ofPoint earthPosition;
 };
