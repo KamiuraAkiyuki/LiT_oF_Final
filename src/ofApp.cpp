@@ -5,10 +5,16 @@ void ofApp::setup(){
     ofBackground(0);
     ofSetVerticalSync(true);
     ofEnableDepthTest();
+    ofSetCircleResolution(100);
     ofToggleFullscreen();
     
-    // 地球画像の読み込み
+    // 画像の読み込み
+    mercuryImg.loadImage("mercury.jpg");
     earthImg.loadImage("image_earth.jpg");
+    
+    // 水星にグリッドを設定
+    cout << "mercuryW: " << earthImg.getWidth() << endl;
+    cout << "mercuryH: " << earthImg.getHeight() << endl;
     
     // 地球グリッドに値を代入
     for(int y = 0; y < (int)earthImg.getHeight(); y += 5){
@@ -28,7 +34,7 @@ void ofApp::setup(){
     cout << earthImg.getHeight() << endl;
     
     // 地球の位置とカメラ視点初期化
-    earthPosition = ofPoint(-700, 0, 0);
+    earthPosition = ofPoint(-earth_revolution_radius, 0, 0);
     cameraPosition = earthPosition + ofPoint(0, earth_radius*1.3, 0);
     
 }
@@ -36,7 +42,7 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     // 地球の位置とカメラの位置更新
-    earthPosition = ofPoint(-700*cosf((float)ofGetElapsedTimef()), 0, 700*sinf((float)ofGetElapsedTimef()));
+    earthPosition = ofPoint(-earth_revolution_radius*cosf((float)ofGetElapsedTimef()), 0, earth_revolution_radius*sinf((float)ofGetElapsedTimef()));
     cameraPosition = earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2));
     camera.setPosition(cameraPosition);
     cameraLookAtPosition = ofPoint(earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2+0.7), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2+0.7)));
@@ -47,10 +53,10 @@ void ofApp::update(){
 void ofApp::draw(){
     ofNoFill();
     
-    if (camMode == 0){
-        camera.begin();
-    } else if (camMode == 1){
+    if (cam_mode == 0){
         cam.begin();
+    } else if (cam_mode == 1){
+        camera.begin();
     }
     
     ofSetColor(255);
@@ -63,10 +69,10 @@ void ofApp::draw(){
             ofPushMatrix();
             ofRotateX(360.0/(120.0*cos(angle))*i);
             ofRotateY(angle/PI*180);
-            ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 10, 10, ofRandom(0, 20));
+            ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 20, 20, ofRandom(0, 40));
             ofRotateY(-2*angle/PI*180);
             if (angle != 0){
-                ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 10, 10, ofRandom(0, 20));
+                ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 20, 20, ofRandom(0, 40));
             }
             ofPopMatrix();
         }
@@ -94,10 +100,21 @@ void ofApp::draw(){
     }
     ofPopMatrix();
     
-    if (camMode == 0){
-        camera.end();
-    } else if (camMode == 1){
+    // 公転軌道の線描画モード
+    if (revolution_line){
+        ofSetLineWidth(0.5);
+        ofSetColor(255);
+        // 地球
+        ofPushMatrix();
+        ofRotateX(90);
+        ofCircle(0, 0, earth_revolution_radius);
+        ofPopMatrix();
+    }
+    
+    if (cam_mode == 0){
         cam.end();
+    } else if (cam_mode == 1){
+        camera.end();
     }
 }
 
@@ -106,7 +123,10 @@ void ofApp::keyPressed(int key){
     
     switch (key){
         case ' ':
-            camMode = (camMode + 1)%2;
+            cam_mode = (cam_mode + 1)%2;
+            break;
+        case 'l':
+            revolution_line = !revolution_line;
             break;
     }
 }
@@ -117,7 +137,7 @@ void ofApp::keyReleased(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
+void ofApp::mouseMoved(int x, int y){
 
 }
 

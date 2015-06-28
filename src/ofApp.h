@@ -22,21 +22,47 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+        // 座標変換の関数
         ofPoint polarToOrthogonal(float radius, float angle1, float angle2);
         ofPoint orthogonalToPolar(float x, float y, float z);
     
-        float earth_radius = 100;
-        float sun_radius = 300;
-        float star_radius = 5000;
-
-        int camMode = 0;
-        ofCamera camera;
-        ofEasyCam cam;
-        ofSpherePrimitive earthSphere;
-        ofImage earthImg;
+        // 惑星の半径の設定
+        float sun_radius = 1392038.0/2000.0;
+        float mercury_radius = 4879.4/200.0;
+        float venus_radius = 12103.6/200.0;
+        float earth_radius = 12756.27/200.0;
+        float mers_radius = 6794.4/200.0;
+        float jupiter_radius = 142984.0/200;
+        float saturn_radius = 120536.0/200;
+        float uranus_radius = 51118.0/200;
+        float neptune_radius = 40528.0/200;
+    
+        // 公転周期の半径を設定
+        float revolution_unit = 2000;
+        float mercury_revolution_radius = 0.3871 * revolution_unit;
+        float venus_revolution_radius = 0.7233 * revolution_unit;
+        float earth_revolution_radius = 1.0 * revolution_unit;
+        float mars_revolution_radius = 1.52366 * revolution_unit;
+        float jupiter_revolution_radius = 5.2026 * revolution_unit;
+        float saturn_revolution_radius = 9.55491 * revolution_unit;
+        float uranus_revolution_radius = 19.128 * revolution_unit;
+        float neptune_revolution_radius = 30.11 * revolution_unit;
+    
+        // 惑星を描画する直方体の位置のクラス
         boxGrid grid[61][62];
     
+        // 惑星の画像
+        ofImage earthImg;
+        ofImage mercuryImg;
+
+        // カメラ設定
+        int cam_mode = 0;  // 0ならofEasyCam, 1ならofCamera
+        ofEasyCam cam;
+        ofCamera camera;
         ofPoint cameraPosition;
         ofPoint cameraLookAtPosition;
         ofPoint earthPosition;
+    
+        // 公転軌道の線を描画するかどうか
+        bool revolution_line = false;
 };
