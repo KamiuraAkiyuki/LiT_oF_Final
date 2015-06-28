@@ -27,18 +27,18 @@ class ofApp : public ofBaseApp{
         ofPoint orthogonalToPolar(float x, float y, float z);
     
         // 惑星の半径の設定
-        float sun_radius = 1392038.0/2000.0;
-        float mercury_radius = 4879.4/200.0;
-        float venus_radius = 12103.6/200.0;
-        float earth_radius = 12756.27/200.0;
-        float mers_radius = 6794.4/200.0;
-        float jupiter_radius = 142984.0/200;
-        float saturn_radius = 120536.0/200;
-        float uranus_radius = 51118.0/200;
-        float neptune_radius = 40528.0/200;
+        float sun_radius = 1392038.0 / 4000.0;
+        float mercury_radius = 4879.4 / 200.0;
+        float venus_radius = 12103.6 / 200.0;
+        float earth_radius = 12756.27 / 200.0;
+        float mers_radius = 6794.4  / 200.0;
+        float jupiter_radius = 142984.0 / 200;
+        float saturn_radius = 120536.0 / 200;
+        float uranus_radius = 51118.0 / 200;
+        float neptune_radius = 40528.0 / 200;
     
         // 公転周期の半径を設定
-        float revolution_unit = 2000;
+        float revolution_unit = 1000;
         float mercury_revolution_radius = 0.3871 * revolution_unit;
         float venus_revolution_radius = 0.7233 * revolution_unit;
         float earth_revolution_radius = 1.0 * revolution_unit;
@@ -48,12 +48,21 @@ class ofApp : public ofBaseApp{
         float uranus_revolution_radius = 19.128 * revolution_unit;
         float neptune_revolution_radius = 30.11 * revolution_unit;
     
-        // 惑星を描画する直方体の位置のクラス
-        boxGrid grid[61][62];
+        // 他の恒星(星)の描画
+        float star_radius_min = 3000;
+        float star_radius_max = 5000;
+    
+        // 惑星を描画する直方体の情報を持つクラスのインスタンス
+        boxGrid grid[41][40];
+        boxGrid mercury[37][33];
     
         // 惑星の画像
         ofImage earthImg;
         ofImage mercuryImg;
+    
+        // 惑星の位置
+        ofPoint earthPosition;
+        ofPoint mercuryPosition;
 
         // カメラ設定
         int cam_mode = 0;  // 0ならofEasyCam, 1ならofCamera
@@ -61,7 +70,6 @@ class ofApp : public ofBaseApp{
         ofCamera camera;
         ofPoint cameraPosition;
         ofPoint cameraLookAtPosition;
-        ofPoint earthPosition;
     
         // 公転軌道の線を描画するかどうか
         bool revolution_line = false;

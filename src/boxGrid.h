@@ -16,8 +16,8 @@ class boxGrid{
     
 private:
     ofPoint startPoint;
-    float bottomWidth = 3;
-    float bottomHeight = 3;
+    float bottomWidth = 2;
+    float bottomHeight = 2;
     float boxHeight = 0;
     ofColor boxColor;
     
