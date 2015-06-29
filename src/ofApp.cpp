@@ -9,27 +9,8 @@ void ofApp::setup(){
     ofToggleFullscreen();
     
     // 画像の読み込み
-    mercuryImg.loadImage("mercury.jpg");
     earthImg.loadImage("image_earth.jpg");
     
-    // 水星にグリッドを設定
-    cout << "mercuryW: " << mercuryImg.getWidth()/25 << endl;
-    cout << "mercuryH: " << mercuryImg.getHeight()/20 << endl;
-    for(int y = 0; y < (int)mercuryImg.getHeight(); y += 20){
-        for(int x = 0; x < (int)mercuryImg.getWidth(); x += 25){
-            ofColor cur = mercuryImg.getColor(x, y);
-            
-            float theta = (float)y * M_PI / mercuryImg.getHeight();
-            float phi = -(float)x * 2.0f * M_PI / mercuryImg.getWidth();
-            float px = mercury_radius * sin(theta) * cos(phi);
-            float py = mercury_radius * sin(theta) * sin(phi);
-            float pz = mercury_radius * cos(theta);
-            
-            mercury[(int)x/25][(int)y/20] = boxGrid(ofPoint(px, py, pz), ofColor(cur, 127));
-
-        }
-    }
-
     // 地球グリッドに値を代入
     cout << "earthH: " << (int)earthImg.getHeight()/8 << endl;
     cout << "earthW: " << (int)earthImg.getWidth()/15 << endl;
@@ -43,40 +24,42 @@ void ofApp::setup(){
             float py = earth_radius * sin(theta) * sin(phi);
             float pz = earth_radius * cos(theta);
             
-            grid[(int)x/15][(int)y/8] = boxGrid(ofPoint(px, py, pz), ofColor(cur, 127));
+            earthGrid[(int)x/15][(int)y/8] = boxGrid(ofPoint(px, py, pz), ofColor(cur, 127));
         }
     }
     
-    
-    
     // 地球の位置とカメラ視点初期化
     earthPosition = ofPoint(-earth_revolution_radius, 0, 0);
-    mercuryPosition = ofPoint(-mercury_revolution_radius, 0, 0);
     cameraPosition = earthPosition + ofPoint(0, earth_radius*1.3, 0);
     
+    // 星の位置を決める
+    for (int i = 0; i < STAR_NUM; i++){
+        float radius = ofRandom(star_radius_min, star_radius_max);
+        float theta = ofRandom(TWO_PI);
+        float phi = ofRandom(TWO_PI);
+        starPosition[i] = polarToOrthogonal(radius, theta, phi);
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     // 惑星の位置
-    earthPosition = ofPoint(-earth_revolution_radius*cosf((float)ofGetElapsedTimef()), 0, earth_revolution_radius*sinf((float)ofGetElapsedTimef()));
-    mercuryPosition = ofPoint(-mercury_revolution_radius*cosf((float)ofGetElapsedTimef()), 0, mercury_revolution_radius*sinf((float)ofGetElapsedTimef()));
-    
+    earthPosition = ofPoint(-earth_revolution_radius*cosf((float)ofGetElapsedTimef()/10), 0, earth_revolution_radius*sinf((float)ofGetElapsedTimef()/10));
+    moonPosition = earthPosition + ofPoint(earth_radius*1.5*cosf((float)ofGetElapsedTimef()), 0, earth_radius*1.5*sinf((float)ofGetElapsedTimef()));
+    camera.setPosition(cameraPosition);
     
     // カメラの位置更新
     cameraPosition = earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2));
     camera.setPosition(cameraPosition);
     cameraLookAtPosition = ofPoint(earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2+0.7), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2+0.7)));
     camera.lookAt(cameraLookAtPosition);
-    
-    // メッシュの更新
-    
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofNoFill();
     
+    // カメラ開始
     if (cam_mode == 0){
         cam.begin();
     } else if (cam_mode == 1){
@@ -86,36 +69,43 @@ void ofApp::draw(){
     ofSetColor(255);
     
     // 太陽
-    for (int j = 0; j < 25; j++){
-        float angle = PI/50.0f*j;
+    for (int j = 0; j < 20; j++){
+        float angle = PI/40.0f*j;
         ofSetColor(ofColor::fromHsb(20*pow(sin(ofGetElapsedTimef() + PI/600*j), 2), 255, 255, 127));
-        for (int i = 0; i < 100*cos(angle); i++){
+        for (int i = 0; i < 80*cos(angle); i++){
             ofPushMatrix();
-            ofRotateX(360.0/(100.0*cos(angle))*i);
+            ofRotateX(360.0/(80.0*cos(angle))*i);
             ofRotateY(angle/PI*180);
-            ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 10, 10, ofRandom(0, 30));
+            ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 15, 15, ofRandom(0, 40));
             ofRotateY(-2*angle/PI*180);
             if (angle != 0){
-                ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 10, 10, ofRandom(0, 30));
+                ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 15, 15, ofRandom(0, 40));
             }
             ofPopMatrix();
         }
     }
     
-    // 水星
-//    ofPushMatrix();
-//    ofTranslate(mercuryPosition);
-//    ofRotateY(90);
-//    for (int y = 0; y < 33; y++){
-//        for (int x = 0; x < 37; x++){
-//            ofPushMatrix();
-//            ofTranslate(grid[x][y].getStartPoint());
-//            ofSetColor(mercury[x][y].getBoxColor());
-//            ofDrawBox(0, 0, 0, mercury[x][y].getBottomWidth(), grid[x][y].getBottomHeight(), 1);
-//            ofPopMatrix();
-//        }
-//    }
-//    ofPopMatrix();
+    // 月
+    ofPushMatrix();
+    ofTranslate(moonPosition);
+    ofRotate(45, 45, 0, 0);
+    for (int j = 0; j < 5; j++){
+        float angle = PI/10.0f*j;
+        ofSetColor(ofColor::fromHsb(30 + 10*pow(sin(ofGetElapsedTimef() + PI/20*j), 2), 255, 255, 127));
+        for (int i = 0; i < 20*cos(angle); i++){
+            ofPushMatrix();
+            ofRotateX(360.0/(20.0*cos(angle))*i);
+            ofRotateY(angle/PI*180);
+            ofCircle(polarToOrthogonal(moon_radius, 0, 0), ofRandom(5, 10));
+            ofRotateY(-2*angle/PI*180);
+            if (angle != 0){
+                ofCircle(polarToOrthogonal(moon_radius, 0, 0), ofRandom(5, 10));
+            }
+            ofPopMatrix();
+        }
+    }
+    ofPopMatrix();
+
     
     // 地球
     ofPushMatrix();
@@ -124,16 +114,16 @@ void ofApp::draw(){
     for (int y = 0; y < 40; y++){
         for (int x = 0; x < 41; x++){
             ofPushMatrix();
-            ofTranslate(grid[x][y].getStartPoint());
+            ofTranslate(earthGrid[x][y].getStartPoint());
             
-            if ((int)grid[x][y].getBoxColor().r < 40){
+            if ((int)earthGrid[x][y].getBoxColor().r < 40){
                 ofSetColor(ofColor::fromHsb(100 + 10 * cosf(ofGetElapsedTimef()), 255, 255, 127));
 
             } else {
                 ofSetColor(ofColor::fromHsb(160 + 30 * sinf(ofGetElapsedTimef()/5), 255, 255, 127));
             }
             
-            ofDrawBox(0, 0, 0, grid[x][y].getBottomWidth(), grid[x][y].getBottomHeight(), 3);
+            ofDrawBox(0, 0, 0, earthGrid[x][y].getBottomWidth(), earthGrid[x][y].getBottomHeight(), 3);
             ofPopMatrix();
         }
     }
@@ -142,15 +132,34 @@ void ofApp::draw(){
     // 公転軌道の線描画モード
     if (revolution_line){
         ofSetLineWidth(0.1);
-        ofSetColor(255);
+        ofSetColor(60);
         // 地球
         ofPushMatrix();
         ofRotateX(90);
-//        ofCircle(0, 0, mercury_revolution_radius);
         ofCircle(0, 0, earth_revolution_radius);
         ofPopMatrix();
     }
     
+    // 設定された星の位置に三角・四角で星を描画
+    for (int i = 0; i < STAR_NUM; i++){
+        ofPushMatrix();
+        ofPushStyle();
+        ofRotateX(i);
+        ofRotateY(i);
+        ofSetColor(ofColor::fromHsb(255.0/6 + 10 * sin(ofGetElapsedTimeMillis()/100 + i*PI/300), 255, 255, 120));
+        float randomf = ofRandom(1);
+        if (randomf < 0.34){
+            ofCircle(starPosition[i], ofRandom(10, 30));
+        } else if (randomf < 0.68){
+            ofRect(starPosition[i], ofRandom(10, 30), ofRandom(10, 30));
+        } else {
+            ofSetCircleResolution(4);
+        }
+        ofPopMatrix();
+        ofPopStyle();
+    }
+    
+    // カメラ終了
     if (cam_mode == 0){
         cam.end();
     } else if (cam_mode == 1){
