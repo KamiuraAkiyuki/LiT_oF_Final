@@ -8,6 +8,18 @@ void ofApp::setup(){
     ofSetCircleResolution(100);
     ofToggleFullscreen();
     
+    // bgm設定
+    backgroundMusic.loadSound("ff13op.mp3");
+    backgroundMusic.setLoop(true);
+    backgroundMusic.play();
+    
+    // FFT初期設定
+    fftSmoothed = new float[8192];
+    for (int i = 0; i < 8192; i++){
+        fftSmoothed[i] = 0;
+    }
+    nBandsToGet = 2;
+    
     // 画像の読み込み
     earthImg.loadImage("image_earth.jpg");
     
@@ -30,6 +42,7 @@ void ofApp::setup(){
     
     // 地球の位置とカメラ視点初期化
     earthPosition = ofPoint(-earth_revolution_radius, 0, 0);
+    moonPosition = earthPosition + ofPoint(earth_radius*1.5, 0, 0);
     cameraPosition = earthPosition + ofPoint(0, earth_radius*1.3, 0);
     
     // 星の位置を決める
@@ -43,16 +56,40 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    // FFT解析
+    ofSoundUpdate();
+    volume=ofSoundGetSpectrum(nBandsToGet);
+    //FFT解析を行い、音量の平均を出す
+    for (int i = 0; i < nBandsToGet; i++){
+        fftSmoothed[i] *= 0.96f;
+        if (fftSmoothed[i] < volume[i]) fftSmoothed[i] = volume[i];
+        avgSound += fftSmoothed[i];
+    }
+    //volumeに値を丸める avgSound /= nBandsToGet;
+    
     // 惑星の位置
-    earthPosition = ofPoint(-earth_revolution_radius*cosf((float)ofGetElapsedTimef()/10), 0, earth_revolution_radius*sinf((float)ofGetElapsedTimef()/10));
+    earthPosition = ofPoint(-earth_revolution_radius*cosf((float)ofGetElapsedTimef()), 0, earth_revolution_radius*sinf((float)ofGetElapsedTimef()));
     moonPosition = earthPosition + ofPoint(earth_radius*1.5*cosf((float)ofGetElapsedTimef()), 0, earth_radius*1.5*sinf((float)ofGetElapsedTimef()));
     camera.setPosition(cameraPosition);
     
     // カメラの位置更新
-    cameraPosition = earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2));
-    camera.setPosition(cameraPosition);
-    cameraLookAtPosition = ofPoint(earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2+0.7), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2+0.7)));
-    camera.lookAt(cameraLookAtPosition);
+    if (cam_mode == 1){
+        //　地球の周りを回るカメラ
+        cameraPosition = earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2));
+        camera.setPosition(cameraPosition);
+        cameraLookAtPosition = ofPoint(earthPosition + ofPoint(0, earth_radius*1.15*cosf((float)ofGetElapsedTimef()/2+0.7), earth_radius*1.15*sinf((float)ofGetElapsedTimef()/2+0.7)));
+        camera.lookAt(cameraLookAtPosition);
+    } else if (cam_mode == 2){
+        // 地球注目カメラ
+        cameraPosition = earthPosition +  ofPoint(0, moon_radius*10*cosf((float)ofGetElapsedTimef()/2), moon_radius*10*sinf((float)ofGetElapsedTimef()/2));
+        camera.setPosition(cameraPosition);
+        camera.lookAt(earthPosition);
+    } else if (cam_mode == 3){
+        // 月注目カメラ
+        cameraPosition = moonPosition +  ofPoint(0, moon_radius*5*cosf((float)ofGetElapsedTimef()/2), moon_radius*5*sinf((float)ofGetElapsedTimef()/2));
+        camera.setPosition(cameraPosition);
+        camera.lookAt(moonPosition);
+    }
 }
 
 //--------------------------------------------------------------
@@ -62,7 +99,7 @@ void ofApp::draw(){
     // カメラ開始
     if (cam_mode == 0){
         cam.begin();
-    } else if (cam_mode == 1){
+    } else {
         camera.begin();
     }
     
@@ -76,10 +113,10 @@ void ofApp::draw(){
             ofPushMatrix();
             ofRotateX(360.0/(80.0*cos(angle))*i);
             ofRotateY(angle/PI*180);
-            ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 15, 15, ofRandom(0, 40));
+            ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 15, 15, ofRandom(0, 30));
             ofRotateY(-2*angle/PI*180);
             if (angle != 0){
-                ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 15, 15, ofRandom(0, 40));
+                ofDrawBox(polarToOrthogonal(sun_radius, 0, 0), 15, 15, ofRandom(0, 30));
             }
             ofPopMatrix();
         }
@@ -106,7 +143,6 @@ void ofApp::draw(){
     }
     ofPopMatrix();
 
-    
     // 地球
     ofPushMatrix();
     ofTranslate(earthPosition);
@@ -143,26 +179,22 @@ void ofApp::draw(){
     // 設定された星の位置に三角・四角で星を描画
     for (int i = 0; i < STAR_NUM; i++){
         ofPushMatrix();
-        ofPushStyle();
         ofRotateX(i);
         ofRotateY(i);
         ofSetColor(ofColor::fromHsb(255.0/6 + 10 * sin(ofGetElapsedTimeMillis()/100 + i*PI/300), 255, 255, 120));
         float randomf = ofRandom(1);
         if (randomf < 0.34){
-            ofCircle(starPosition[i], ofRandom(10, 30));
+            ofCircle(starPosition[i], ofRandom(10, fftSmoothed[1] * 6000));
         } else if (randomf < 0.68){
-            ofRect(starPosition[i], ofRandom(10, 30), ofRandom(10, 30));
-        } else {
-            ofSetCircleResolution(4);
+            ofRect(starPosition[i], ofRandom(10, fftSmoothed[1] * 6000), ofRandom(10, fftSmoothed[1] * 6000));
         }
         ofPopMatrix();
-        ofPopStyle();
     }
     
     // カメラ終了
     if (cam_mode == 0){
         cam.end();
-    } else if (cam_mode == 1){
+    } else {
         camera.end();
     }
 }
@@ -172,7 +204,7 @@ void ofApp::keyPressed(int key){
     
     switch (key){
         case ' ':
-            cam_mode = (cam_mode + 1)%2;
+            cam_mode = (cam_mode + 1) % 4;
             break;
         case 'l':
             revolution_line = !revolution_line;

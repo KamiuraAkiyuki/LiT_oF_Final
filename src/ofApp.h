@@ -4,7 +4,7 @@
 #include "boxGrid.h"
 
 #define GRID_NUM 1000
-#define STAR_NUM 200
+#define STAR_NUM 150
 
 class ofApp : public ofBaseApp{
 
@@ -15,7 +15,7 @@ class ofApp : public ofBaseApp{
 
 		void keyPressed(int key);
 		void keyReleased(int key);
-		void mouseMoved(int x, int y );
+		void mouseMoved(int x, int y);
 		void mouseDragged(int x, int y, int button);
 		void mousePressed(int x, int y, int button);
 		void mouseReleased(int x, int y, int button);
@@ -27,6 +27,13 @@ class ofApp : public ofBaseApp{
         ofPoint polarToOrthogonal(float radius, float angle1, float angle2);
         ofPoint orthogonalToPolar(float x, float y, float z);
     
+        // 音関係の設定
+        ofSoundPlayer backgroundMusic;
+        float *volume;
+        float* fftSmoothed;
+        int nBandsToGet;
+        float avgSound;
+    
         // 惑星の半径の設定
         float sun_radius = 1392038.0 / 4000.0;
         float earth_radius = 12756.27 / 200.0;
@@ -37,9 +44,11 @@ class ofApp : public ofBaseApp{
         float earth_revolution_radius = 1.0 * revolution_unit;
     
         // 他の恒星(星)の描画
-        float star_radius_min = 3000;
+        float star_radius_min = 2000;
         float star_radius_max = 5000;
         ofPoint starPosition[STAR_NUM];
+        ofBoxPrimitive shootingStar;
+        ofPoint shootingStarPosition;
     
         // 惑星を描画する直方体の情報を持つクラスのインスタンス
         boxGrid earthGrid[41][40];
@@ -52,8 +61,9 @@ class ofApp : public ofBaseApp{
         ofPoint moonPosition;
 
         // カメラ設定
-        int cam_mode = 0;  // 0ならofEasyCam, 1ならofCamera
+        int cam_mode = 0;  // 0ならofEasyCam, 1ならofCamera, 2なら地球に注目 3なら月に注目
         ofEasyCam cam;
+        ofEasyCam moonCam;
         ofCamera camera;
         ofPoint cameraPosition;
         ofPoint cameraLookAtPosition;
